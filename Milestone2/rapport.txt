@@ -1,6 +1,9 @@
 Write a small report: 
 ---------------------
 
+The xtext project is in the current repository,
+you can find a few examples of valid formulas accepted by the model in the folder test.
+
 
 - Documenting some well-formed rules that are worth checking and not expressed in the grammar
 ---------------------------------------------------------------------------------------------
