@@ -8,14 +8,14 @@ you can find a few examples of valid formulas accepted by the model in the folde
 - Documenting some well-formed rules that are worth checking and not expressed in the grammar
 ---------------------------------------------------------------------------------------------
 
-At the moment, I don't see any rule that isn't expressed by the grammar itself.
+At the moment, I don't see any well-formed rule that isn't expressed by the grammar itself.
 
 - Comparing the metamodel MM2 generated out of your Xtext grammar with the metamodel MM1 defined in Milestone 1
 ---------------------------------------------------------------------------------------------------------------
 
 The main difference is the disparition of the class Binop, which was here to group the binary operators but not mandatory.
-In the Xtext grammar, it would just add one rule with no real use, so it is not a problem to remove it.
-Apart from that and the names of the attribute, which isn't an important difference, the Metamodels are similar.
+In the Xtext grammar, it would just add one rule with no impact on the concrete syntax.
+Apart from that and the names of the attributes, the Metamodels are similar.
 
 - Comparing your Xtext grammar GR0 with the Xtext grammar GR1 we get if we use the metamodel defined in Milestone 1   
 -------------------------------------------------------------------------------------------------------------------
