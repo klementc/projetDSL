@@ -1,0 +1,51 @@
+grammar org.xtext.example.mydsl.DSLSAT with org.eclipse.xtext.common.Terminals
+
+generate dSLSAT "http://www.xtext.org/example/mydsl/DSLSAT"
+
+Model returns Form:
+	(xheck='Check')? (form=BiImplForm | 'FromFile' path=STRING)
+;
+
+BiImplForm returns Form:
+	ImplForm ( {BiImplForm.left=current} '<=>' right=ImplForm)*
+;
+
+ImplForm returns Form:
+	OrForm ({ImplForm.left=current} '=>' right=OrForm)*
+;
+
+OrForm returns Form:
+	AndForm ({OrForm.left=current} 'v' right=AndForm)*
+;
+
+AndForm returns Form:
+	NandForm ({AndForm.left=current} '^' right=NandForm)*	
+;
+
+NandForm returns Form:
+	Form ({NandForm.left=current} '|' right=Form)*
+;
+
+Form returns Form:
+	form=Const
+	| form=Var
+	| form=NotForm
+	| '('form=BiImplForm')'
+	
+;
+
+NotForm returns Form:
+	'!' Form {NotForm.form=current}
+;
+
+Var:
+	id=LOWID
+;
+
+Const:
+	val=("true"|"false")
+;
+
+terminal LOWID:
+	('A'..'Z')+
+;
