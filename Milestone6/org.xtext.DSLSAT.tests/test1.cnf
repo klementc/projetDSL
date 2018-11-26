@@ -1,0 +1,6 @@
+c generated from DSLSAT
+c
+p cnf 4 3
+-1 2 0
+3 -4 0
+1 0
