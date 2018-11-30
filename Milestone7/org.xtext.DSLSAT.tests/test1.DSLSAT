@@ -1,0 +1,2 @@
+#SOLVER SAT4J
+(A v B) ^ (C v D) ^ (E v !F)
