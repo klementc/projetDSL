@@ -61,6 +61,54 @@ class DSLSATParsingTest {
 		Assertions.assertTrue(errors.isEmpty, '''Unexpected errors: «errors.join(", ")»''')
 	}
 	
+	/**
+	 * Try to load a harder formula
+	 */
+	@Test
+	def void loadModel3() {
+		val result = parseHelper.parse('''
+			(!A v B) <=> (C v !D) => A
+		''')
+		
+		Assertions.assertNotNull(result)
+		val errors = result.eResource.errors
+		Assertions.assertTrue(errors.isEmpty, '''Unexpected errors: «errors.join(", ")»''')
+	}
+	
+	/**
+	 * Try to load an invalid formula
+	 */
+	@Test
+	def void loadModelFalse() {
+		val result = parseHelper.parse('''
+			(!A v B) <=> 
+		''')
+		
+		Assertions.assertNotNull(result)
+		val errors = result.eResource.errors
+		Assertions.assertFalse(errors.isEmpty, '''Unexpected errors: «errors.join(", ")»''')
+	}
+	
+	
+	@Test
+	/**
+ 	 *  Using the solver macro to define the solver to use
+ 	 */
+	def void loadModel4() {
+		val result = parseHelper.parse('''
+			#SOLVER SAT4J
+			(!A v B) <=> (C v !D) ^ A
+		''')
+		var d = new DSLSATDIMACSTransform
+		d.transformAndSaveAsDIMACS(result,"test1.cnf")
+		
+		Assertions.assertNotNull(result)
+		val errors = result.eResource.errors
+		Assertions.assertTrue(errors.isEmpty, '''Unexpected errors: «errors.join(", ")»''')
+	}
+	
+	
+	
 	@Test
 	/**
 	 * Verifies that sat4j treats a satisfiable formula correctly
@@ -90,18 +138,33 @@ class DSLSATParsingTest {
 	
 	@Test
 	/**
+	 * Verifies that yalsat treats an unsatisfiable formula correctly
+	 */
+	def void tryToSolveUnsatisfiableWithYalsat(){
+		var satWithYalsat = DSLSATYalsatSolver.processFromDSLSATWithYalsat("test2.DSLSAT") 
+		Assertions.assertFalse(satWithYalsat, '''Satisfiability should be False''')
+	}
+
+	/**
+	 * Verifies that yalsat treats a satisfiable formula correctly
+	 */
+	def void tryToSolveSatisfiableWithYalSat(){
+		var satWithYalsat = DSLSATYalsatSolver.processFromDSLSATWithYalsat("test1.DSLSAT") 
+		Assertions.assertTrue(satWithYalsat, '''Satisfiability should be true''')
+	}
+	
+	@Test
+	/**
 	 * Verifies that minisat treats an unsatisfiable formula correctly
 	 */
 	def void tryToSolveUnsatisfiableWithMINISAT(){
 		var satWithMINISAT = DSLSATMiniSAT.processFromDSLSATWithMiniSAT("test2.DSLSAT") 
 		Assertions.assertFalse(satWithMINISAT, '''Satisfiability should be False''')
 	}
-
-
 	@Test
 	/**
 	 * Checks if a satisfiable formula is seen as satisfiable 
-	 * from both minisat and sat4J
+	 * from yalsat minisat and sat4J
 	 */
 	def void trySolversSameValueSatisfiable(){
 		Assertions.assertTrue(DSLSATMiniSAT.processFromDSLSATWithMiniSAT("test1.DSLSAT") == DSLSAT4JSolver.processFromDSLSATWithSAT4J("test1.DSLSAT"), '''Satisfiability should be True''')
@@ -110,7 +173,7 @@ class DSLSATParsingTest {
 	@Test
 	/**
 	 * Checks if an unsatisfiable formula is seen as unsatisfiable 
-	 * from both minisat and sat4J
+	 * from yalsat minisat and sat4J
 	 */
 	def void trySolversSameValueUnsatisfiable(){
 		Assertions.assertTrue(DSLSATMiniSAT.processFromDSLSATWithMiniSAT("test2.DSLSAT") == DSLSAT4JSolver.processFromDSLSATWithSAT4J("test2.DSLSAT"), '''Satisfiability should be False''')
@@ -119,7 +182,7 @@ class DSLSATParsingTest {
 	@Test
 	/**
 	 * Tries the solver comparison for a solvable formula
-	 * from both minisat and sat4J
+	 * from yalsat minisat and sat4J
 	 */
 	def void trySolverComparisonMethodOnSatisfiable(){
 		Assertions.assertTrue(DSLSATSolversComparison.verifyOutputFromDSLSAT("test1.DSLSAT"), '''Solvers output should be the same''')
@@ -128,7 +191,7 @@ class DSLSATParsingTest {
 	@Test
 	/**
 	 * Checks if an unsatisfiable formula is seen as unsatisfiable 
-	 * from both minisat and sat4J
+	 * from yalsat minisat and sat4J
 	 */
 	def void trySolverComparisonMethodOnUnsatisfiable(){
 		System.out.println(RandomDSLSATGenerator.getRandomFormula(5));
@@ -141,8 +204,9 @@ class DSLSATParsingTest {
 	 * Here we test on random formulas
 	 */
 	def void trySolverComparisonOnRandomForm(){
-		for(var i=0;i<5;i++){
+		for(var i=0;i<20;i++){
 			var s = RandomDSLSATGenerator.getRandomFormula(5);
+			System.out.println("Going to check: "+s+" with the different solvers")
 			var f = parseHelper.parse(s);
 			
 			var out = new PrintWriter("testrand.DSLSAT");

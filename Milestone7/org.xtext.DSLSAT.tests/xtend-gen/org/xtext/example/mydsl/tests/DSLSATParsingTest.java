@@ -26,6 +26,7 @@ import org.xtext.example.mydsl.tests.DSLSATDIMACSTransform;
 import org.xtext.example.mydsl.tests.DSLSATInjectorProvider;
 import org.xtext.example.mydsl.tests.DSLSATMiniSAT;
 import org.xtext.example.mydsl.tests.DSLSATSolversComparison;
+import org.xtext.example.mydsl.tests.DSLSATYalsatSolver;
 import org.xtext.example.mydsl.tests.RandomDSLSATGenerator;
 
 @ExtendWith(InjectionExtension.class)
@@ -90,6 +91,76 @@ public class DSLSATParsingTest {
     }
   }
   
+  /**
+   * Try to load a harder formula
+   */
+  @Test
+  public void loadModel3() {
+    try {
+      StringConcatenation _builder = new StringConcatenation();
+      _builder.append("(!A v B) <=> (C v !D) => A");
+      _builder.newLine();
+      final Form result = this.parseHelper.parse(_builder);
+      Assertions.assertNotNull(result);
+      final EList<Resource.Diagnostic> errors = result.eResource().getErrors();
+      boolean _isEmpty = errors.isEmpty();
+      StringConcatenation _builder_1 = new StringConcatenation();
+      _builder_1.append("Unexpected errors: ");
+      String _join = IterableExtensions.join(errors, ", ");
+      _builder_1.append(_join);
+      Assertions.assertTrue(_isEmpty, _builder_1.toString());
+    } catch (Throwable _e) {
+      throw Exceptions.sneakyThrow(_e);
+    }
+  }
+  
+  /**
+   * Try to load an invalid formula
+   */
+  @Test
+  public void loadModelFalse() {
+    try {
+      StringConcatenation _builder = new StringConcatenation();
+      _builder.append("(!A v B) <=> ");
+      _builder.newLine();
+      final Form result = this.parseHelper.parse(_builder);
+      Assertions.assertNotNull(result);
+      final EList<Resource.Diagnostic> errors = result.eResource().getErrors();
+      boolean _isEmpty = errors.isEmpty();
+      StringConcatenation _builder_1 = new StringConcatenation();
+      _builder_1.append("Unexpected errors: ");
+      String _join = IterableExtensions.join(errors, ", ");
+      _builder_1.append(_join);
+      Assertions.assertFalse(_isEmpty, _builder_1.toString());
+    } catch (Throwable _e) {
+      throw Exceptions.sneakyThrow(_e);
+    }
+  }
+  
+  @Test
+  public void loadModel4() {
+    try {
+      StringConcatenation _builder = new StringConcatenation();
+      _builder.append("#SOLVER SAT4J");
+      _builder.newLine();
+      _builder.append("(!A v B) <=> (C v !D) ^ A");
+      _builder.newLine();
+      final Form result = this.parseHelper.parse(_builder);
+      DSLSATDIMACSTransform d = new DSLSATDIMACSTransform();
+      d.transformAndSaveAsDIMACS(result, "test1.cnf");
+      Assertions.assertNotNull(result);
+      final EList<Resource.Diagnostic> errors = result.eResource().getErrors();
+      boolean _isEmpty = errors.isEmpty();
+      StringConcatenation _builder_1 = new StringConcatenation();
+      _builder_1.append("Unexpected errors: ");
+      String _join = IterableExtensions.join(errors, ", ");
+      _builder_1.append(_join);
+      Assertions.assertTrue(_isEmpty, _builder_1.toString());
+    } catch (Throwable _e) {
+      throw Exceptions.sneakyThrow(_e);
+    }
+  }
+  
   @Test
   public void tryToSolveSatisfiableWithSAT4J() {
     boolean satWithSAT4J = DSLSAT4JSolver.processFromDSLSATWithSAT4J("test1.DSLSAT");
@@ -112,6 +183,24 @@ public class DSLSATParsingTest {
     StringConcatenation _builder = new StringConcatenation();
     _builder.append("Satisfiability should be true");
     Assertions.assertTrue(satWithMINISAT, _builder.toString());
+  }
+  
+  @Test
+  public void tryToSolveUnsatisfiableWithYalsat() {
+    boolean satWithYalsat = DSLSATYalsatSolver.processFromDSLSATWithYalsat("test2.DSLSAT");
+    StringConcatenation _builder = new StringConcatenation();
+    _builder.append("Satisfiability should be False");
+    Assertions.assertFalse(satWithYalsat, _builder.toString());
+  }
+  
+  /**
+   * Verifies that yalsat treats a satisfiable formula correctly
+   */
+  public void tryToSolveSatisfiableWithYalSat() {
+    boolean satWithYalsat = DSLSATYalsatSolver.processFromDSLSATWithYalsat("test1.DSLSAT");
+    StringConcatenation _builder = new StringConcatenation();
+    _builder.append("Satisfiability should be true");
+    Assertions.assertTrue(satWithYalsat, _builder.toString());
   }
   
   @Test
@@ -162,9 +251,10 @@ public class DSLSATParsingTest {
   @Test
   public void trySolverComparisonOnRandomForm() {
     try {
-      for (int i = 0; (i < 5); i++) {
+      for (int i = 0; (i < 20); i++) {
         {
           String s = RandomDSLSATGenerator.getRandomFormula(5);
+          System.out.println((("Going to check: " + s) + " with the different solvers"));
           Form f = this.parseHelper.parse(s);
           PrintWriter out = new PrintWriter("testrand.DSLSAT");
           out.println(s);
